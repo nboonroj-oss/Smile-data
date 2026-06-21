@@ -1,30 +1,45 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { Html5QrcodeScanner } from 'html5-qrcode';
 
 export default function BarcodeScanner({ onDetect, onClose }) {
+  const scannerRef = useRef(null);
+
   useEffect(() => {
-    // ต้องตรงกับ id ใน return ด้านล่าง
-    const scanner = new Html5QrcodeScanner("reader", { 
-      fps: 10, 
-      qrbox: { width: 250, height: 250 } 
-    }, false);
+    // Initialize scanner
+    const scanner = new Html5QrcodeScanner(
+      "reader",
+      { fps: 10, qrbox: { width: 250, height: 250 } },
+      /* verbose= */ false
+    );
     
+    scannerRef.current = scanner;
+
     scanner.render(
       (decodedText) => {
+        // Success callback: Trigger parent action and close scanner immediately
         onDetect(decodedText);
-        scanner.clear();
+        scanner.clear().catch(console.error);
+        onClose(); 
       },
-      (err) => { /* ลบเงื่อนไขที่โชว์ข้อความเตือนออก */ }
+      (error) => {
+        // Ignore scan errors (common during continuous scan attempts)
+      }
     );
 
-    return () => { scanner.clear(); };
-  }, [onDetect]);
+    // Cleanup on component unmount
+    return () => {
+      if (scannerRef.current) {
+        scannerRef.current.clear().catch(console.error);
+      }
+    };
+  }, [onDetect, onClose]);
 
-  // ต้องมี div id="reader" ไม่งั้น Library จะวาดกล้องไม่ถูก
   return (
-    <div>
-      <div id="reader" style={{ width: '100%' }}></div>
-      <button onClick={onClose}>Cancel</button>
+    <div style={styles.overlay}>
+      <div style={styles.panel}>
+        <div id="reader" style={{ width: '100%' }}></div>
+        <button onClick={onClose} style={styles.cancelBtn}>Cancel</button>
+      </div>
     </div>
   );
 }
