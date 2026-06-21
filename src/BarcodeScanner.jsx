@@ -1,27 +1,15 @@
-import { useEffect, useRef } from 'react';
-import { Html5QrcodeScanner } from 'html5-qrcode';
-import { parseGS1Barcode } from './utils/gs1Parser'; // Import your new utility
+import { Html5QrcodeScanner, Html5QrcodeSupportedFormats } from 'html5-qrcode';
 
-export default function BarcodeScanner({ onScanSuccess, onClose }) {
-  const scannerRef = useRef(null);
+// Inside your useEffect or initialization function:
+const config = {
+  fps: 10,
+  qrbox: { width: 250, height: 250 },
+  // Explicitly allow DataMatrix and others
+  formatsToSupport: [
+    Html5QrcodeSupportedFormats.QR_CODE,
+    Html5QrcodeSupportedFormats.DATA_MATRIX,
+    Html5QrcodeSupportedFormats.CODE_128
+  ]
+};
 
-  useEffect(() => {
-    const scanner = new Html5QrcodeScanner("reader", { fps: 10, qrbox: 250 });
-    
-    scanner.render((decodedText) => {
-      // Parse the raw text immediately upon scanning
-      const parsedData = parseGS1Barcode(decodedText);
-      
-      // Pass the structured data to your parent component
-      onScanSuccess(parsedData);
-      
-      // Close after success
-      scanner.clear();
-      onClose();
-    });
-
-    return () => { scanner.clear(); };
-  }, [onScanSuccess, onClose]);
-
-  return <div id="reader" />;
-}
+const scanner = new Html5QrcodeScanner("reader", config, false);
