@@ -1,6 +1,11 @@
 export const parseGS1Barcode = (rawString) => {
   const result = {};
-  // Standard GS1 AI codes
+  
+  // 1. Sanitize the raw input
+  // Replace ASCII 29 (Group Separator) and other control chars with a standard delimiter
+  // Then replace that with '(' so your existing regex can process it
+  const sanitized = rawString.replace(/[\x1D\x1E\x1F]/g, '('); 
+  
   const aiMap = {
     '01': 'gtin',
     '10': 'lot_number',
@@ -14,11 +19,10 @@ export const parseGS1Barcode = (rawString) => {
     return `20${val.substring(0, 2)}-${val.substring(2, 4)}-${val.substring(4, 6)}`;
   };
 
-  // Logic to split by AI groups
-  // GS1 data often uses (AI) or ASCII 29 (Group Separator)
+  // 2. The Regex now handles the standardized '(' characters
   const regex = /\((\d{2,4})\)([^\(\)]*)/g;
   let match;
-  while ((match = regex.exec(rawString)) !== null) {
+  while ((match = regex.exec(sanitized)) !== null) {
     const ai = match[1];
     const value = match[2];
     if (aiMap[ai]) {
