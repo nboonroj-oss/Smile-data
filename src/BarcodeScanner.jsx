@@ -11,10 +11,9 @@ export default function BarcodeScanner({ onDetect, onClose }) {
     scanner.render(
       (decodedText) => {
         onDetect(decodedText);
-        scanner.clear(); // สแกนได้แล้วให้ปิดกล้อง
+        scanner.clear();
       },
       (error) => {
-        // ไม่ต้องทำอะไรหากสแกนไม่เจอ (มันจะรัน error ทุก frame ที่ไม่เจอโค้ด)
       }
     );
 
@@ -32,4 +31,3 @@ export default function BarcodeScanner({ onDetect, onClose }) {
     </div>
   );
 }
-// ... คง style เดิมไว้
